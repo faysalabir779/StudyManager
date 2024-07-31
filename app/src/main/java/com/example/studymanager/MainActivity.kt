@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             StudyManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    TaskScreen()
+                    SubjectScreen()
                 }
             }
         }

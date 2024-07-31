@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,12 +40,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.studymanager.presentation.components.DatePicker
 import com.example.studymanager.presentation.components.DeleteDialogue
 
 import com.example.studymanager.presentation.components.TaskCheckBox
 import com.example.studymanager.util.Priority
+import java.time.Instant
 import kotlin.math.sin
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreen(modifier: Modifier = Modifier) {
 
@@ -54,6 +58,11 @@ fun TaskScreen(modifier: Modifier = Modifier) {
     var titleError by rememberSaveable { mutableStateOf<String?>(null) }
 
     var isTaskDelete by rememberSaveable { mutableStateOf(false) }
+    var isDatePicker by rememberSaveable { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = Instant.now().toEpochMilli()
+    )
+
 
     titleError = when {
         title.isBlank() -> "Please Enter Task Title"
@@ -70,6 +79,12 @@ fun TaskScreen(modifier: Modifier = Modifier) {
         onConfirmButtonClick = { isTaskDelete = false }
     )
 
+    DatePicker(
+        state = datePickerState,
+        isOpen = isDatePicker,
+        onDismissRequest = { isDatePicker = false },
+        onConfirmClick = { isDatePicker = false })
+
 
     Scaffold(
         topBar = {
@@ -78,7 +93,7 @@ fun TaskScreen(modifier: Modifier = Modifier) {
                 isComplete = false,
                 onBackClick = {},
                 checkBoxBorderColor = Color.Red,
-                onDeleteButtonClick = {isTaskDelete = true },
+                onDeleteButtonClick = { isTaskDelete = true },
                 onCheckBoxClick = {})
         }
     ) {
@@ -117,7 +132,7 @@ fun TaskScreen(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "25 July 2024", style = MaterialTheme.typography.bodyLarge)
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = {isDatePicker = true}) {
                     Icon(imageVector = Icons.Filled.DateRange, contentDescription = null)
                 }
             }
