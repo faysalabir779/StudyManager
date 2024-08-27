@@ -6,7 +6,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -14,9 +16,9 @@ fun DatePicker(
     state: DatePickerState,
     isOpen: Boolean,
     onDismissRequest: () -> Unit,
-    onConfirmClick : () -> Unit,
+    onConfirmClick: () -> Unit,
 ) {
-    if (isOpen){
+    if (isOpen) {
         DatePickerDialog(
             onDismissRequest = onDismissRequest,
             confirmButton = {
@@ -24,15 +26,13 @@ fun DatePicker(
                     Text(text = "OK")
                 }
             },
-            dismissButton ={
+            dismissButton = {
                 TextButton(onClick = onDismissRequest) {
                     Text(text = "Cancel")
                 }
             },
             content = {
-                androidx.compose.material3.DatePicker(
-                    state = state,
-                )
+                androidx.compose.material3.DatePicker(state = state)
             }
         )
     }

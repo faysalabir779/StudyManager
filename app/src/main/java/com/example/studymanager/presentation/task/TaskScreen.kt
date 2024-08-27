@@ -73,7 +73,7 @@ fun TaskScreen(modifier: Modifier = Modifier) {
 
     DeleteDialogue(
         isOpen = isTaskDelete,
-        title = "Delete Subject?",
+        title = "Delete Task?",
         bodyText = "Are you sure, you want to delete this task? This action cannot be undone.",
         onDismissClick = { isTaskDelete = false },
         onConfirmButtonClick = { isTaskDelete = false }
@@ -131,7 +131,8 @@ fun TaskScreen(modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "25 July 2024", style = MaterialTheme.typography.bodyLarge)
+                Text(text = datePickerState.selectedDateMillis, style = MaterialTheme.typography.bodyLarge)
+                //Todo date showing theke shuru
                 IconButton(onClick = {isDatePicker = true}) {
                     Icon(imageVector = Icons.Filled.DateRange, contentDescription = null)
                 }
