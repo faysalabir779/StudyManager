@@ -15,6 +15,7 @@ import com.example.studymanager.doamin.model.Session
 import com.example.studymanager.doamin.model.Subject
 import com.example.studymanager.doamin.model.Task
 import com.example.studymanager.presentation.Dashboard.DashboardScreen
+import com.example.studymanager.presentation.session.SessionScreen
 import com.example.studymanager.presentation.subject.SubjectScreen
 import com.example.studymanager.presentation.task.TaskScreen
 import com.example.studymanager.presentation.theme.StudyManagerTheme
@@ -26,7 +27,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             StudyManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    TaskScreen()
+                    SessionScreen()
                 }
             }
         }
