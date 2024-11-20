@@ -9,7 +9,9 @@ object DashBoardScreenRoute
 object SubjectScreenRoute
 
 @Serializable
-object TaskScreenRoute
+data class TaskScreenRoute(
+    val taskId: Int?
+)
 
 @Serializable
 object SessionScreenRoute

@@ -1,5 +1,6 @@
 package com.example.studymanager.presentation.Dashboard
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -130,7 +131,8 @@ fun DashboardScreen(navController: NavHostController) {
                 note = "You don't have any upcoming tasks\n Click on + to add upcoming tasks",
                 task = tasks,
                 onCheckBoxClick = {},
-                onTaskCardClick = { navController.navigate(TaskScreenRoute) }
+                onTaskCardClick = {taskId ->
+                    navController.navigate(TaskScreenRoute(taskId)) }
             )
             item {
                 Spacer(modifier = Modifier.height(15.dp))

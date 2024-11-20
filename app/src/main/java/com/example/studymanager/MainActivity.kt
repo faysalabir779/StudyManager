@@ -52,7 +52,7 @@ val tasks = listOf(
         priority = 0,
         relatedToSubject = "Maths",
         isCompleted = false,
-        taskId = 0,
+        taskId = 1,
         taskSubjectId = 0
 
     ),
@@ -63,7 +63,7 @@ val tasks = listOf(
         priority = 1,
         relatedToSubject = "Maths",
         isCompleted = false,
-        taskId = 0,
+        taskId = 2,
         taskSubjectId = 0
     ),
     Task(
@@ -73,7 +73,7 @@ val tasks = listOf(
         priority = 2,
         relatedToSubject = "Maths",
         isCompleted = true,
-        taskId = 0,
+        taskId = 3,
         taskSubjectId = 0
     ),
     Task(
@@ -83,7 +83,7 @@ val tasks = listOf(
         priority = 2,
         relatedToSubject = "Maths",
         isCompleted = true,
-        taskId = 0,
+        taskId = 4,
         taskSubjectId = 0
     )
 
