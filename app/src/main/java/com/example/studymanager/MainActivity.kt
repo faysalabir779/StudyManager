@@ -5,20 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.studymanager.doamin.model.Session
 import com.example.studymanager.doamin.model.Subject
 import com.example.studymanager.doamin.model.Task
-import com.example.studymanager.presentation.Dashboard.DashboardScreen
-import com.example.studymanager.presentation.session.SessionScreen
-import com.example.studymanager.presentation.subject.SubjectScreen
-import com.example.studymanager.presentation.task.TaskScreen
+import com.example.studymanager.presentation.navigation.App
 import com.example.studymanager.presentation.theme.StudyManagerTheme
+import com.ramcosta.composedestinations.DestinationsNavHost
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +21,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             StudyManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SessionScreen()
+                    App()
                 }
             }
         }

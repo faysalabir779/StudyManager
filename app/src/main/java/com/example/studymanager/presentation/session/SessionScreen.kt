@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,21 +32,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.SubjectListBottomSheet
-import com.example.studymanager.presentation.components.TaskCheckBox
 import com.example.studymanager.session
 import com.example.studymanager.subjects
 import kotlinx.coroutines.launch
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionScreen(modifier: Modifier = Modifier) {
+fun SessionScreen(navController: NavHostController) {
 
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -75,7 +73,7 @@ fun SessionScreen(modifier: Modifier = Modifier) {
         onConfirmButtonClick = { isTaskDelete = false })
 
     Scaffold(topBar = {
-        SessionScreenTopBar(onBackClick = {})
+        SessionScreenTopBar(onBackClick = {navController.navigateUp()})
     }) {
         LazyColumn(
             modifier = Modifier

@@ -67,7 +67,7 @@ fun LazyListScope.TaskList(
         }
     }
     items(task) { task ->
-        TaskCard(task = task, onCheckBoxClick = { task }, onClick = { task.taskId })
+        TaskCard(task = task, onCheckBoxClick = { task }, onClick = { onTaskCardClick(task.taskId) })
     }
 }
 
@@ -80,7 +80,7 @@ fun TaskCard(
     ElevatedCard(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 12.dp, vertical = 4.dp)
-        .clickable { onClick }) {
+        .clickable { onClick() }) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -40,18 +40,22 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.studymanager.doamin.model.Subject
 import com.example.studymanager.presentation.components.AddSubjectDialogue
 import com.example.studymanager.presentation.components.CountCard
 import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.TaskList
+import com.example.studymanager.presentation.navigation.DashBoardScreenRoute
+import com.example.studymanager.presentation.navigation.TaskScreenRoute
 import com.example.studymanager.session
 import com.example.studymanager.tasks
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubjectScreen(modifier: Modifier = Modifier) {
+fun SubjectScreen(navController: NavHostController) {
 
     //for top app bar animation to single line app bar
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -105,7 +109,7 @@ fun SubjectScreen(modifier: Modifier = Modifier) {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SubjectScreenTopBar(
-                onBackClick = {},
+                onBackClick = {navController.navigateUp()},
                 onDeleteClick = {isDeleteSubjectDialogueOpen = true},
                 onEditClick = {isAddSubjectDialogueOpen = true},
                 scrollBehavior = scrollBehavior
@@ -113,7 +117,7 @@ fun SubjectScreen(modifier: Modifier = Modifier) {
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { /*TODO*/ },
+                onClick = { navController.navigate(TaskScreenRoute) },
                 text = {
                     Text(text = "Add Task")
                 },

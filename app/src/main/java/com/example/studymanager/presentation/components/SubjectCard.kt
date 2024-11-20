@@ -35,8 +35,8 @@ fun SubjectCard(
                 brush = Brush.verticalGradient(subjectColor),
                 shape = MaterialTheme.shapes.medium
             )
-            .clickable { onClick }) {
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+    ) {
+        Column(modifier = Modifier.fillMaxSize().padding(12.dp).clickable { onClick() }, verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 painter = painterResource(id = R.drawable.book2),
                 contentDescription = null,

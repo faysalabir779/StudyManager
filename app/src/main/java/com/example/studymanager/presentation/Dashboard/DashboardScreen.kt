@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,24 +36,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.studymanager.R
-import com.example.studymanager.doamin.model.Session
 import com.example.studymanager.doamin.model.Subject
-import com.example.studymanager.doamin.model.Task
 import com.example.studymanager.presentation.components.AddSubjectDialogue
 import com.example.studymanager.presentation.components.CountCard
 import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.SubjectCard
 import com.example.studymanager.presentation.components.TaskList
+import com.example.studymanager.presentation.navigation.SessionScreenRoute
+import com.example.studymanager.presentation.navigation.SubjectScreenRoute
+import com.example.studymanager.presentation.navigation.TaskScreenRoute
 import com.example.studymanager.session
 import com.example.studymanager.subjects
 import com.example.studymanager.tasks
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(modifier: Modifier = Modifier) {
-
+fun DashboardScreen(navController: NavHostController) {
 
     var subjectName by rememberSaveable { mutableStateOf("") }
     var goalStudyHours by rememberSaveable { mutableStateOf("") }
@@ -106,11 +107,13 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
             item {
                 SubjectCardSection(
                     subjectList = subjects,
-                    onAddIconClick = { isAddSubjectDialogueOpen = true })
+                    onAddIconClick = { isAddSubjectDialogueOpen = true },
+                    onSubjectCardClick = { navController.navigate(SubjectScreenRoute) }
+                )
             }
             item {
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {  navController.navigate(SessionScreenRoute)},
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(88.dp)
@@ -127,7 +130,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                 note = "You don't have any upcoming tasks\n Click on + to add upcoming tasks",
                 task = tasks,
                 onCheckBoxClick = {},
-                onTaskCardClick = {}
+                onTaskCardClick = { navController.navigate(TaskScreenRoute) }
             )
             item {
                 Spacer(modifier = Modifier.height(15.dp))
@@ -180,7 +183,8 @@ fun CountCardSection(
 private fun SubjectCardSection(
     modifier: Modifier = Modifier,
     subjectList: List<Subject>,
-    onAddIconClick: () -> Unit
+    onAddIconClick: () -> Unit,
+    onSubjectCardClick: (Int?) -> Unit
 ) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -223,7 +227,7 @@ private fun SubjectCardSection(
                     SubjectCard(
                         subjectName = subjectList.name,
                         subjectColor = subjectList.color,
-                        onClick = {})
+                        onClick = { onSubjectCardClick(subjectList.subjectId) })
                 }
             }
         }

@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.studymanager.presentation.components.DatePicker
 import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.SubjectListBottomSheet
@@ -52,9 +53,10 @@ import com.example.studymanager.util.changeMillisToDateString
 import kotlinx.coroutines.launch
 import java.time.Instant
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(modifier: Modifier = Modifier) {
+fun TaskScreen(navController: NavHostController) {
 
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
@@ -107,7 +109,7 @@ fun TaskScreen(modifier: Modifier = Modifier) {
     Scaffold(topBar = {
         TaskScreenTopBar(isTaskExist = true,
             isComplete = false,
-            onBackClick = {},
+            onBackClick = {navController.navigateUp()},
             checkBoxBorderColor = Color.Red,
             onDeleteButtonClick = { isTaskDelete = true },
             onCheckBoxClick = {})

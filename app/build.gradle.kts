@@ -1,8 +1,11 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
+    kotlin("plugin.serialization")version "2.0.0"
+    id("kotlin-parcelize")
 }
 
 android {
@@ -76,6 +79,12 @@ dependencies {
     val destinationVersion = "1.9.52"
     implementation ("io.github.raamcosta.compose-destinations:core:$destinationVersion")
     ksp ("io.github.raamcosta.compose-destinations:ksp:$destinationVersion")
+
+    //navigation
+    val nav_version = "2.8.0"
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     //Room
     val room_version = "2.6.1"
