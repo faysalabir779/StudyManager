@@ -6,7 +6,9 @@ import kotlinx.serialization.Serializable
 object DashBoardScreenRoute
 
 @Serializable
-object SubjectScreenRoute
+data class SubjectScreenRoute(
+    val subjectId: Int?
+)
 
 @Serializable
 data class TaskScreenRoute(

@@ -109,12 +109,15 @@ fun DashboardScreen(navController: NavHostController) {
                 SubjectCardSection(
                     subjectList = subjects,
                     onAddIconClick = { isAddSubjectDialogueOpen = true },
-                    onSubjectCardClick = { navController.navigate(SubjectScreenRoute) }
+                    onSubjectCardClick = { subjectId ->
+                        Log.d("subjectId", "DashboardScreen: $subjectId")
+                        navController.navigate(SubjectScreenRoute(subjectId))
+                    }
                 )
             }
             item {
                 Button(
-                    onClick = {  navController.navigate(SessionScreenRoute)},
+                    onClick = { navController.navigate(SessionScreenRoute) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(88.dp)
@@ -131,8 +134,9 @@ fun DashboardScreen(navController: NavHostController) {
                 note = "You don't have any upcoming tasks\n Click on + to add upcoming tasks",
                 task = tasks,
                 onCheckBoxClick = {},
-                onTaskCardClick = {taskId ->
-                    navController.navigate(TaskScreenRoute(taskId)) }
+                onTaskCardClick = { taskId ->
+                    navController.navigate(TaskScreenRoute(taskId))
+                }
             )
             item {
                 Spacer(modifier = Modifier.height(15.dp))

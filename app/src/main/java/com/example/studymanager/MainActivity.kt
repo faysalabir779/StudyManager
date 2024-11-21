@@ -30,9 +30,9 @@ class MainActivity : ComponentActivity() {
 
 val subjects = listOf(
     Subject("Maths", 10, Subject.subjectCardColor[0], subjectId = 0),
-    Subject("English", 2, Subject.subjectCardColor[1], subjectId = 0),
-    Subject("Biology", 3, Subject.subjectCardColor[2], subjectId = 0),
-    Subject("Chemistry", 8, Subject.subjectCardColor[3], subjectId = 0)
+    Subject("English", 2, Subject.subjectCardColor[1], subjectId = 1),
+    Subject("Biology", 3, Subject.subjectCardColor[2], subjectId = 2),
+    Subject("Chemistry", 8, Subject.subjectCardColor[3], subjectId = 4)
 )
 val tasks = listOf(
     Task(
