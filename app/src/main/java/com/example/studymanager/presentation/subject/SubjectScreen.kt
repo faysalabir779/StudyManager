@@ -1,5 +1,6 @@
 package com.example.studymanager.presentation.subject
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -55,7 +56,8 @@ import com.example.studymanager.tasks
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubjectScreen(navController: NavHostController) {
+fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
+
 
     //for top app bar animation to single line app bar
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()

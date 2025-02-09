@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.studymanager.presentation.Dashboard.DashboardScreen
 import com.example.studymanager.presentation.session.SessionScreen
 import com.example.studymanager.presentation.subject.SubjectScreen
@@ -16,7 +17,10 @@ fun App(modifier: Modifier = Modifier) {
 
     NavHost(navController = navController, startDestination = DashBoardScreenRoute) {
         composable<DashBoardScreenRoute> { DashboardScreen(navController) }
-        composable<SubjectScreenRoute> { SubjectScreen(navController) }
+        composable<SubjectScreenRoute> {
+            val subjectId = it.toRoute<SubjectScreenRoute>()
+            SubjectScreen(navController, subjectId.subjectId)
+        }
         composable<TaskScreenRoute> { TaskScreen(navController) }
         composable<SessionScreenRoute> { SessionScreen(navController) }
     }

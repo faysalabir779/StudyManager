@@ -110,7 +110,6 @@ fun DashboardScreen(navController: NavHostController) {
                     subjectList = subjects,
                     onAddIconClick = { isAddSubjectDialogueOpen = true },
                     onSubjectCardClick = { subjectId ->
-                        Log.d("subjectId", "DashboardScreen: $subjectId")
                         navController.navigate(SubjectScreenRoute(subjectId))
                     }
                 )
