@@ -13,7 +13,9 @@ import com.example.studymanager.doamin.model.Task
 import com.example.studymanager.presentation.navigation.App
 import com.example.studymanager.presentation.theme.StudyManagerTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,5 +1,10 @@
 package com.example.studymanager.doamin.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+
+@Entity
 data class Task(
     val title: String,
     val description: String,
@@ -7,7 +12,8 @@ data class Task(
     val priority: Int,
     val relatedToSubject: String,
     val isCompleted: Boolean,
-    val taskId: Int,
+    @PrimaryKey(autoGenerate = true)
+    val taskId: Int? = null,
     val taskSubjectId: Int
 
 )

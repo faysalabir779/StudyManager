@@ -58,6 +58,7 @@ import com.example.studymanager.tasks
 @Composable
 fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
 
+    Log.d("hellosub", "SubjectScreen: $subjectId")
 
     //for top app bar animation to single line app bar
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
