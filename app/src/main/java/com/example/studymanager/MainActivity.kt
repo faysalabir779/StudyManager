@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import com.example.studymanager.doamin.model.Session
 import com.example.studymanager.doamin.model.Subject
 import com.example.studymanager.doamin.model.Task
@@ -31,10 +32,10 @@ class MainActivity : ComponentActivity() {
 }
 
 val subjects = listOf(
-    Subject("Maths", 10, Subject.subjectCardColor[0], subjectId = 0),
-    Subject("English", 2, Subject.subjectCardColor[1], subjectId = 1),
-    Subject("Biology", 3, Subject.subjectCardColor[2], subjectId = 2),
-    Subject("Chemistry", 8, Subject.subjectCardColor[3], subjectId = 4)
+    Subject(name = "Maths", 10f, color = Subject.subjectCardColor[0].map { it.toArgb() }, subjectId = 0),
+    Subject(name = "English", 2f, color = Subject.subjectCardColor[1].map { it.toArgb() }, subjectId = 1),
+    Subject(name = "Biology", 3f, color = Subject.subjectCardColor[2].map { it.toArgb() }, subjectId = 2),
+    Subject(name = "Chemistry", 8f, color = Subject.subjectCardColor[3].map { it.toArgb() }, subjectId = 4)
 )
 val tasks = listOf(
     Task(

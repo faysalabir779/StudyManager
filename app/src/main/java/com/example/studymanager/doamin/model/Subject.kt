@@ -12,8 +12,8 @@ import com.example.studymanager.presentation.theme.gradient5
 @Entity
 data class Subject(
     val name: String,
-    val goalHours: Int,
-    val color: List<Color>,
+    val goalHours: Float,
+    val color: List<Int>,
     @PrimaryKey(autoGenerate = true)
     val subjectId: Int? = null
 ) {

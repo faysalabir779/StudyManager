@@ -9,13 +9,13 @@ interface TaskRepository {
 
     suspend fun deleteTask(taskId: Int)
 
-    suspend fun deleteTaskBySubjectId(subjectId: Int)
-
     suspend fun getTaskById(taskId: Int): Task?
 
-    fun getTaskForSubject(taskSubjectId: Int): Flow<List<Task>>
+    fun getUpcomingTasksForSubject(subjectId: Int): Flow<List<Task>>
 
-    fun getAllTasks(): Flow<List<Task>>
+    fun getCompletedTaskForSubject(subjectId: Int): Flow<List<Task>>
+
+    fun getAllUpcomingTask(): Flow<List<Task>>
 
 
 }

@@ -4,6 +4,7 @@ import com.example.studymanager.data.local.SessionDao
 import com.example.studymanager.doamin.model.Session
 import com.example.studymanager.doamin.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.take
 import javax.inject.Inject
 
 class SessionRepositoryImpl @Inject constructor(private val sessionDao: SessionDao):SessionRepository {
@@ -19,19 +20,20 @@ class SessionRepositoryImpl @Inject constructor(private val sessionDao: SessionD
         TODO("Not yet implemented")
     }
 
-    override fun getRecentSessionForSubject(subjectId: Int): Flow<List<Session>> {
+    override fun getRecentFiveSession(): Flow<List<Session>> {
+        return sessionDao.getAllSession().take(count = 5)
+    }
+
+    override fun getRecentTenSessionForSubject(subjectId: Int): Flow<List<Session>> {
         TODO("Not yet implemented")
     }
 
     override fun getTotalSessionDuration(): Flow<Long> {
-        TODO("Not yet implemented")
+        return sessionDao.getTotalSessionDuration()
     }
 
     override fun getTotalSessionDurationBySubjectId(subjectId: Int): Flow<Long> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun deleteSessionBySubjectId(subjectId: Int) {
-        TODO("Not yet implemented")
-    }
 }

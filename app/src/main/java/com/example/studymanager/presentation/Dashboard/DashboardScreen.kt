@@ -1,6 +1,5 @@
 package com.example.studymanager.presentation.Dashboard
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,17 +25,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.studymanager.R
 import com.example.studymanager.doamin.model.Subject
@@ -50,31 +55,53 @@ import com.example.studymanager.presentation.navigation.SessionScreenRoute
 import com.example.studymanager.presentation.navigation.SubjectScreenRoute
 import com.example.studymanager.presentation.navigation.TaskScreenRoute
 import com.example.studymanager.session
-import com.example.studymanager.subjects
 import com.example.studymanager.tasks
+import com.example.studymanager.util.SnackBarEvent
+import kotlinx.coroutines.flow.collectLatest
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(navController: NavHostController) {
+fun DashboardScreen(
+    navController: NavHostController,
+    dashboardViewModel: DashboardViewModel,
+    onEvent: (DashboardEvents) -> Unit
+) {
 
-    var subjectName by rememberSaveable { mutableStateOf("") }
-    var goalStudyHours by rememberSaveable { mutableStateOf("") }
-    var selectedColor by rememberSaveable { mutableStateOf(Subject.subjectCardColor.random()) }
+    val state by dashboardViewModel.state.collectAsStateWithLifecycle()
+    val task by dashboardViewModel.tasks.collectAsStateWithLifecycle()
+    val recentSession by dashboardViewModel.recentSession.collectAsStateWithLifecycle()
 
     var isAddSubjectDialogueOpen by rememberSaveable { mutableStateOf(false) }
     var isDeleteDialogueOpen by rememberSaveable { mutableStateOf(false) }
 
+    //this is the functionality of SnackBar(Like Toast)
+    val snackBarEvent = dashboardViewModel.snackBarEventFlow
+    val snackBarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(key1 = true) {
+        snackBarEvent.collectLatest { event->
+            when(event){
+                is SnackBarEvent.ShowSnackBar -> {
+                    snackBarHostState.showSnackbar(
+                        message = event.message,
+                        duration = event.duration
+                    )
+                }
+            }
+        }
+    }
+
     AddSubjectDialogue(
         isOpen = isAddSubjectDialogueOpen,
         onDismissClick = { isAddSubjectDialogueOpen = false },
-        subjectName = subjectName,
-        onSubjectChange = { subjectName = it },
-        goalHours = goalStudyHours,
-        onGoalHoursChange = { goalStudyHours = it },
-        selectedColor = selectedColor,
-        onColorChange = { selectedColor = it },
+        subjectName = state.subjectName,
+        onSubjectChange = { onEvent(DashboardEvents.onSubjectNameChange(name = it)) },
+        goalHours = state.goalStudyHours,
+        onGoalHoursChange = { onEvent(DashboardEvents.onGoalStudyHourChange(hour = it)) },
+        selectedColor = state.subjectCardColor,
+        onColorChange = { onEvent(DashboardEvents.onSubjectCardColorChange(colors = it)) },
         onConfirmButtonClick = {
+            onEvent(DashboardEvents.SaveSubject)
             isAddSubjectDialogueOpen = false
         }
     )
@@ -84,10 +111,14 @@ fun DashboardScreen(navController: NavHostController) {
         title = "Delete Session?",
         bodyText = "Are you sure, you want to delete this session? Your studied hours will be removed. This action cannot be undone.",
         onDismissClick = { isDeleteDialogueOpen = false },
-        onConfirmButtonClick = { isDeleteDialogueOpen = false }
+        onConfirmButtonClick = {
+            onEvent(DashboardEvents.DeleteSession)
+            isDeleteDialogueOpen = false
+        }
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         topBar = {
             CenterAlignedTopAppBar(title = {
                 Text(
@@ -96,18 +127,22 @@ fun DashboardScreen(navController: NavHostController) {
                 )
             })
         }
-    ) {
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
         ) {
             item {
-                CountCardSection(subjectCount = "5", studiedHours = "10", goalStudyHours = "12")
+                CountCardSection(
+                    subjectCount = state.totalSubjectCount.toString(),
+                    studiedHours = state.totalStudiedHours.toString(),
+                    goalStudyHours = state.totalGoalStudyHours.toString()
+                )
             }
             item {
                 SubjectCardSection(
-                    subjectList = subjects,
+                    subjectList = state.subjects,
                     onAddIconClick = { isAddSubjectDialogueOpen = true },
                     onSubjectCardClick = { subjectId ->
                         navController.navigate(SubjectScreenRoute(subjectId))
@@ -131,8 +166,8 @@ fun DashboardScreen(navController: NavHostController) {
             TaskList(
                 sectionTile = "UPCOMING TASKS",
                 note = "You don't have any upcoming tasks\n Click on + to add upcoming tasks",
-                task = tasks,
-                onCheckBoxClick = {},
+                task = task,
+                onCheckBoxClick = { onEvent(DashboardEvents.onTaskIsCompleteChange(it)) },
                 onTaskCardClick = { taskId ->
                     navController.navigate(TaskScreenRoute(taskId))
                 }
@@ -143,8 +178,11 @@ fun DashboardScreen(navController: NavHostController) {
             StudySessionList(
                 sectionTile = "SESSION LIST",
                 note = "You don't have any recent study sessions\n Start a new session to track your progress",
-                session = session,
-                onDeleteIconClick = { isDeleteDialogueOpen = true }
+                session = recentSession,
+                onDeleteIconClick = {
+                    onEvent(DashboardEvents.onDeleteSessionButtonClick(session = it))
+                    isDeleteDialogueOpen = true
+                }
             )
 
         }
@@ -231,7 +269,7 @@ private fun SubjectCardSection(
                 items(subjectList) { subjectList ->
                     SubjectCard(
                         subjectName = subjectList.name,
-                        subjectColor = subjectList.color,
+                        subjectColor = subjectList.color.map { Color(it) },
                         onClick = { onSubjectCardClick(subjectList.subjectId) })
                 }
             }

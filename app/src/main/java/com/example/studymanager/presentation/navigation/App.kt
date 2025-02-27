@@ -26,7 +26,13 @@ fun App(modifier: Modifier = Modifier) {
 
 
     NavHost(navController = navController, startDestination = DashBoardScreenRoute) {
-        composable<DashBoardScreenRoute> { DashboardScreen(navController) }
+        composable<DashBoardScreenRoute> {
+            DashboardScreen(
+                navController,
+                dashboardViewModel,
+                dashboardViewModel::onEvent
+            )
+        }
         composable<SubjectScreenRoute> {
             val subjectId = it.toRoute<SubjectScreenRoute>()
             SubjectScreen(navController, subjectId.subjectId)

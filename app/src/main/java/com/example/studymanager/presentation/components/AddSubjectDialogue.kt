@@ -110,7 +110,7 @@ fun AddSubjectDialogue(
                         label = {
                             Text(text = "Subject Name")
                         },
-                        maxLines = 1,
+                        singleLine = true,
                         supportingText = {
                             Text(text = subjectNameError.orEmpty())
                         }
@@ -121,7 +121,7 @@ fun AddSubjectDialogue(
                         label = {
                             Text(text = "Goal Study Hours")
                         },
-                        maxLines = 1,
+                        singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         supportingText = {
                             Text(text = goalsHourError.orEmpty())
