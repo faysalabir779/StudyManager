@@ -80,6 +80,7 @@ dependencies {
     implementation ("io.github.raamcosta.compose-destinations:core:$destinationVersion")
     ksp ("io.github.raamcosta.compose-destinations:ksp:$destinationVersion")
 
+
     //navigation
     val nav_version = "2.8.0"
     implementation("androidx.navigation:navigation-compose:$nav_version")

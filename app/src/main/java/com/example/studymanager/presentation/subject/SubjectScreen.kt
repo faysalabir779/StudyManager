@@ -1,6 +1,5 @@
 package com.example.studymanager.presentation.subject
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -41,24 +40,51 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.example.studymanager.doamin.model.Subject
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymanager.presentation.components.AddSubjectDialogue
 import com.example.studymanager.presentation.components.CountCard
 import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.TaskList
-import com.example.studymanager.presentation.navigation.DashBoardScreenRoute
-import com.example.studymanager.presentation.navigation.TaskScreenRoute
-import com.example.studymanager.session
-import com.example.studymanager.tasks
+import com.example.studymanager.presentation.destinations.TaskScreenRouteDestination
+import com.example.studymanager.presentation.task.TaskScreenNavArgs
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
+data class SubjectScreenNavArgs(
+    val subjectId: Int,
+)
+
+@Destination(navArgsDelegate = SubjectScreenNavArgs::class)
+@Composable
+fun SubjectScreenRoute(navigator: DestinationsNavigator) {
+    val viewModel: SubjectScreenViewModel = hiltViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    SubjectScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onBackButtonClick = { navigator.navigateUp() },
+        onAddTaskButtonClick = {
+            val navArg = TaskScreenNavArgs(taskId = null, subjectId = -1)
+            navigator.navigate(TaskScreenRouteDestination(navArgs = navArg))
+        },
+        onTaskCardClick = { taskId ->
+            val navArg = TaskScreenNavArgs(taskId = taskId, subjectId = null)
+            navigator.navigate(TaskScreenRouteDestination(navArgs = navArg))
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
-
-    Log.d("hellosub", "SubjectScreen: $subjectId")
+private fun SubjectScreen(
+    state: SubjectStates,
+    onEvent: (SubjectEvents) -> Unit,
+    onBackButtonClick: () -> Unit,
+    onAddTaskButtonClick: () -> Unit,
+    onTaskCardClick: (Int?) -> Unit,
+) {
 
     //for top app bar animation to single line app bar
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -69,9 +95,6 @@ fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
         derivedStateOf { lazyListState.firstVisibleItemIndex == 0 }
     }
 
-    var subjectName by rememberSaveable { mutableStateOf("") }
-    var goalStudyHours by rememberSaveable { mutableStateOf("") }
-    var selectedColor by rememberSaveable { mutableStateOf(Subject.subjectCardColor.random()) }
 
     var isAddSubjectDialogueOpen by rememberSaveable { mutableStateOf(false) }
     var isDeleteSubjectDialogueOpen by rememberSaveable { mutableStateOf(false) }
@@ -80,12 +103,12 @@ fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
     AddSubjectDialogue(
         isOpen = isAddSubjectDialogueOpen,
         onDismissClick = { isAddSubjectDialogueOpen = false },
-        subjectName = subjectName,
-        onSubjectChange = { subjectName = it },
-        goalHours = goalStudyHours,
-        onGoalHoursChange = { goalStudyHours = it },
-        selectedColor = selectedColor,
-        onColorChange = { selectedColor = it },
+        subjectName = state.subjectName,
+        onSubjectChange = { onEvent(SubjectEvents.OnSubjectNameChange(it)) },
+        goalHours = state.goalStudyHours,
+        onGoalHoursChange = { onEvent(SubjectEvents.OnGoalStudyHourChange(it)) },
+        selectedColor = state.subjectCardColor,
+        onColorChange = { onEvent(SubjectEvents.OnSubjectCardColorChange(it)) },
         onConfirmButtonClick = {
             isAddSubjectDialogueOpen = false
         }
@@ -97,7 +120,10 @@ fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
         title = "Delete Subject?",
         bodyText = "Are you sure, you want to delete this subject? All related task and study session will be removed. This action cannot be undone.",
         onDismissClick = { isDeleteSubjectDialogueOpen = false },
-        onConfirmButtonClick = { isDeleteSubjectDialogueOpen = false }
+        onConfirmButtonClick = {
+            onEvent(SubjectEvents.DeleteSubject)
+            isDeleteSubjectDialogueOpen = false
+        }
     )
 
     //delete session
@@ -106,21 +132,25 @@ fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
         title = "Delete Session?",
         bodyText = "Are you sure, you want to delete this session? Your studied hours will be removed. This action cannot be undone.",
         onDismissClick = { isDeleteDialogueOpen = false },
-        onConfirmButtonClick = { isDeleteDialogueOpen = false }
+        onConfirmButtonClick = {
+            onEvent(SubjectEvents.DeleteSession)
+            isDeleteDialogueOpen = false
+        }
     )
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SubjectScreenTopBar(
-                onBackClick = {navController.navigateUp()},
-                onDeleteClick = {isDeleteSubjectDialogueOpen = true},
-                onEditClick = {isAddSubjectDialogueOpen = true},
+                title = state.subjectName,
+                onBackClick = onBackButtonClick,
+                onDeleteClick = { isDeleteSubjectDialogueOpen = true },
+                onEditClick = { isAddSubjectDialogueOpen = true },
                 scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { navController.navigate(TaskScreenRoute) },
+                onClick = onAddTaskButtonClick,
                 text = {
                     Text(text = "Add Task")
                 },
@@ -129,7 +159,7 @@ fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
                 },
                 expanded = isFABExpanded
             )
-        }) {
+        }) { it ->
         LazyColumn(
             state = lazyListState,
             modifier = Modifier
@@ -139,31 +169,38 @@ fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
             item {
                 SubjectOverViewSection(
                     modifier = Modifier.padding(12.dp),
-                    studiedHours = "10",
-                    goalHours = "12",
-                    progress = 0.6f
+                    studiedHours = state.goalStudyHours,
+                    goalHours = state.studiedHours.toString(),
+                    progress = state.progress
                 )
             }
-            TaskList(sectionTile = "UPCOMING TASKS",
+            TaskList(
+                sectionTile = "UPCOMING TASKS",
                 note = "You don't have any upcoming tasks\n Click on + to add upcoming tasks",
-                task = tasks,
-                onCheckBoxClick = {},
-                onTaskCardClick = {})
+                task = state.upcomingTasks,
+                onCheckBoxClick = { onEvent(SubjectEvents.OnTaskIsCompleteChange(it)) },
+                onTaskCardClick = onTaskCardClick
+            )
             item {
                 Spacer(modifier = Modifier.height(15.dp))
             }
-            TaskList(sectionTile = "COMPLETED TASKS",
+            TaskList(
+                sectionTile = "COMPLETED TASKS",
                 note = "You don't have any completed tasks\n Click on the check box to mark as completed",
-                task = tasks,
-                onCheckBoxClick = {},
-                onTaskCardClick = {})
+                task = state.completedTasks,
+                onCheckBoxClick = { onEvent(SubjectEvents.OnTaskIsCompleteChange(it)) },
+                onTaskCardClick = onTaskCardClick
+            )
             item {
                 Spacer(modifier = Modifier.height(15.dp))
             }
             StudySessionList(sectionTile = "SESSION LIST",
                 note = "You don't have any recent study sessions\n Start a new session to track your progress",
-                session = session,
-                onDeleteIconClick = { isDeleteDialogueOpen = true})
+                session = state.recentSession,
+                onDeleteIconClick = {
+                    isDeleteDialogueOpen = true
+                    onEvent(SubjectEvents.OnDeleteSessionButtonClick(it))
+                })
 
         }
 
@@ -173,6 +210,7 @@ fun SubjectScreen(navController: NavHostController, subjectId: Int?) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SubjectScreenTopBar(
+    title: String,
     onBackClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onEditClick: () -> Unit,
@@ -186,7 +224,7 @@ private fun SubjectScreenTopBar(
             }
         }, title = {
             Text(
-                text = "Subject",
+                text = title,
                 style = MaterialTheme.typography.headlineSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

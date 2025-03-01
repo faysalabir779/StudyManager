@@ -41,22 +41,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.example.studymanager.presentation.components.DatePicker
 import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.SubjectListBottomSheet
-
 import com.example.studymanager.presentation.components.TaskCheckBox
 import com.example.studymanager.subjects
 import com.example.studymanager.util.Common
 import com.example.studymanager.util.changeMillisToDateString
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
 import java.time.Instant
 
+data class TaskScreenNavArgs(
+    val taskId: Int?,
+    val subjectId: Int?
+)
+
+@Destination(navArgsDelegate = TaskScreenNavArgs::class)
+@Composable
+fun TaskScreenRoute(navigator: DestinationsNavigator) {
+    TaskScreen(onBackButtonClick = { navigator.navigateUp() })
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(navController: NavHostController) {
+private fun TaskScreen(
+    onBackButtonClick: () -> Unit,
+) {
 
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
@@ -99,7 +111,7 @@ fun TaskScreen(navController: NavHostController) {
         subjects = subjects,
         onSubjectClicked = {
             scope.launch { sheetState.hide() }.invokeOnCompletion {
-                if (!sheetState.isVisible)isSubjectBottomSheetOpen = false
+                if (!sheetState.isVisible) isSubjectBottomSheetOpen = false
             }
         },
         onDismissRequest = { isSubjectBottomSheetOpen = false }
@@ -109,7 +121,7 @@ fun TaskScreen(navController: NavHostController) {
     Scaffold(topBar = {
         TaskScreenTopBar(isTaskExist = true,
             isComplete = false,
-            onBackClick = {navController.navigateUp()},
+            onBackClick = onBackButtonClick,
             checkBoxBorderColor = Color.Red,
             onDeleteButtonClick = { isTaskDelete = true },
             onCheckBoxClick = {})

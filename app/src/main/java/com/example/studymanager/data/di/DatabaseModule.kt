@@ -6,7 +6,6 @@ import com.example.studymanager.data.local.AppDatabase
 import com.example.studymanager.data.local.SessionDao
 import com.example.studymanager.data.local.SubjectDao
 import com.example.studymanager.data.local.TaskDao
-import com.example.studymanager.presentation.navigation.App
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

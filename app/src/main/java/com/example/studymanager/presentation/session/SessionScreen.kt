@@ -34,18 +34,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.SubjectListBottomSheet
 import com.example.studymanager.session
 import com.example.studymanager.subjects
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
 
+@Destination
+@Composable
+fun SessionScreenRoute(navigator: DestinationsNavigator) {
+    SessionScreen(
+        onBackButtonClick = { navigator.navigateUp() }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionScreen(navController: NavHostController) {
+private fun SessionScreen(
+    onBackButtonClick: () -> Unit
+) {
 
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -73,7 +83,7 @@ fun SessionScreen(navController: NavHostController) {
         onConfirmButtonClick = { isTaskDelete = false })
 
     Scaffold(topBar = {
-        SessionScreenTopBar(onBackClick = {navController.navigateUp()})
+        SessionScreenTopBar(onBackClick = onBackButtonClick)
     }) {
         LazyColumn(
             modifier = Modifier
@@ -96,7 +106,7 @@ fun SessionScreen(navController: NavHostController) {
             StudySessionList(sectionTile = "STUDY SESSIONS HISTORY",
                 note = "You don't have any recent study sessions\n Start a new session to track your progress",
                 session = session,
-                onDeleteIconClick = {isTaskDelete = true})
+                onDeleteIconClick = { isTaskDelete = true })
 
         }
 

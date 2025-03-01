@@ -20,7 +20,7 @@ class SubjectRepositoryImpl @Inject constructor(private val subjectDao: SubjectD
     }
 
     override suspend fun getSubjectById(subjectId: Int): Subject? {
-        TODO("Not yet implemented")
+        return subjectDao.getSubjectById(subjectId)
     }
 
     override suspend fun deleteSubject(subjectId: Int) {

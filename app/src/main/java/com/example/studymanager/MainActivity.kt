@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.toArgb
 import com.example.studymanager.doamin.model.Session
 import com.example.studymanager.doamin.model.Subject
 import com.example.studymanager.doamin.model.Task
-import com.example.studymanager.presentation.navigation.App
+import com.example.studymanager.presentation.NavGraphs
 import com.example.studymanager.presentation.theme.StudyManagerTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             StudyManagerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    App()
+                    DestinationsNavHost(navGraph = NavGraphs.root)
                 }
             }
         }

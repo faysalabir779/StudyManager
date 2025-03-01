@@ -41,8 +41,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import com.example.studymanager.R
 import com.example.studymanager.doamin.model.Subject
 import com.example.studymanager.presentation.components.AddSubjectDialogue
@@ -51,19 +51,50 @@ import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.SubjectCard
 import com.example.studymanager.presentation.components.TaskList
-import com.example.studymanager.presentation.navigation.SessionScreenRoute
-import com.example.studymanager.presentation.navigation.SubjectScreenRoute
-import com.example.studymanager.presentation.navigation.TaskScreenRoute
-import com.example.studymanager.session
-import com.example.studymanager.tasks
+import com.example.studymanager.presentation.destinations.SessionScreenRouteDestination
+import com.example.studymanager.presentation.destinations.SubjectScreenRouteDestination
+import com.example.studymanager.presentation.destinations.TaskScreenRouteDestination
+import com.example.studymanager.presentation.subject.SubjectScreenNavArgs
+import com.example.studymanager.presentation.task.TaskScreenNavArgs
 import com.example.studymanager.util.SnackBarEvent
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 
+@Destination(start = true)
+@Composable
+fun DashBoardScreenRoute(
+    navigator: DestinationsNavigator
+) {
+    val viewModel: DashboardViewModel = hiltViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    DashboardScreen(
+        onSubjectCardClick = { subjectId ->
+            subjectId?.let {
+                val navArg = SubjectScreenNavArgs(subjectId = subjectId)
+                navigator.navigate(SubjectScreenRouteDestination(navArgs = navArg))
+            }
+        },
+        onTaskCardClick = { taskId ->
+            val navArg = TaskScreenNavArgs(taskId = taskId, subjectId = null)
+            navigator.navigate(TaskScreenRouteDestination(navArgs = navArg))
+        },
+        onStartSessionButtonClick = {
+            navigator.navigate(SessionScreenRouteDestination())
+        },
+        dashboardViewModel = viewModel,
+        state = state,
+        onEvent = viewModel::onEvent
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(
-    navController: NavHostController,
+private fun DashboardScreen(
+    state: DashboardState,
+    onSubjectCardClick: (Int?) -> Unit,
+    onTaskCardClick: (Int?) -> Unit,
+    onStartSessionButtonClick: () -> Unit,
     dashboardViewModel: DashboardViewModel,
     onEvent: (DashboardEvents) -> Unit
 ) {
@@ -79,8 +110,8 @@ fun DashboardScreen(
     val snackBarEvent = dashboardViewModel.snackBarEventFlow
     val snackBarHostState = remember { SnackbarHostState() }
     LaunchedEffect(key1 = true) {
-        snackBarEvent.collectLatest { event->
-            when(event){
+        snackBarEvent.collectLatest { event ->
+            when (event) {
                 is SnackBarEvent.ShowSnackBar -> {
                     snackBarHostState.showSnackbar(
                         message = event.message,
@@ -144,14 +175,12 @@ fun DashboardScreen(
                 SubjectCardSection(
                     subjectList = state.subjects,
                     onAddIconClick = { isAddSubjectDialogueOpen = true },
-                    onSubjectCardClick = { subjectId ->
-                        navController.navigate(SubjectScreenRoute(subjectId))
-                    }
+                    onSubjectCardClick = onSubjectCardClick
                 )
             }
             item {
                 Button(
-                    onClick = { navController.navigate(SessionScreenRoute) },
+                    onClick = onStartSessionButtonClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(88.dp)
@@ -168,9 +197,7 @@ fun DashboardScreen(
                 note = "You don't have any upcoming tasks\n Click on + to add upcoming tasks",
                 task = task,
                 onCheckBoxClick = { onEvent(DashboardEvents.onTaskIsCompleteChange(it)) },
-                onTaskCardClick = { taskId ->
-                    navController.navigate(TaskScreenRoute(taskId))
-                }
+                onTaskCardClick = onTaskCardClick
             )
             item {
                 Spacer(modifier = Modifier.height(15.dp))
