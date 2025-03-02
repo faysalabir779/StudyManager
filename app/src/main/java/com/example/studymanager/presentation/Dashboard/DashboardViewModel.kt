@@ -69,6 +69,7 @@ class DashboardViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
+    //snackbar
     private val _snackBarEventFlow = MutableSharedFlow<SnackBarEvent>()
     val snackBarEventFlow = _snackBarEventFlow.asSharedFlow()
 

@@ -44,7 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymanager.R
+import com.example.studymanager.doamin.model.Session
 import com.example.studymanager.doamin.model.Subject
+import com.example.studymanager.doamin.model.Task
 import com.example.studymanager.presentation.components.AddSubjectDialogue
 import com.example.studymanager.presentation.components.CountCard
 import com.example.studymanager.presentation.components.DeleteDialogue
@@ -59,6 +61,7 @@ import com.example.studymanager.presentation.task.TaskScreenNavArgs
 import com.example.studymanager.util.SnackBarEvent
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collectLatest
 
 @Destination(start = true)
@@ -68,6 +71,9 @@ fun DashBoardScreenRoute(
 ) {
     val viewModel: DashboardViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val task by viewModel.tasks.collectAsStateWithLifecycle()
+    val recentSession by viewModel.recentSession.collectAsStateWithLifecycle()
+
     DashboardScreen(
         onSubjectCardClick = { subjectId ->
             subjectId?.let {
@@ -82,9 +88,11 @@ fun DashBoardScreenRoute(
         onStartSessionButtonClick = {
             navigator.navigate(SessionScreenRouteDestination())
         },
-        dashboardViewModel = viewModel,
+        snackBarEvent = viewModel.snackBarEventFlow,
         state = state,
-        onEvent = viewModel::onEvent
+        onEvent = viewModel::onEvent,
+        task = task,
+        session = recentSession,
     )
 }
 
@@ -92,22 +100,19 @@ fun DashBoardScreenRoute(
 @Composable
 private fun DashboardScreen(
     state: DashboardState,
+    task: List<Task>,
+    session: List<Session>,
     onSubjectCardClick: (Int?) -> Unit,
     onTaskCardClick: (Int?) -> Unit,
     onStartSessionButtonClick: () -> Unit,
-    dashboardViewModel: DashboardViewModel,
+    snackBarEvent: SharedFlow<SnackBarEvent>,
     onEvent: (DashboardEvents) -> Unit
 ) {
-
-    val state by dashboardViewModel.state.collectAsStateWithLifecycle()
-    val task by dashboardViewModel.tasks.collectAsStateWithLifecycle()
-    val recentSession by dashboardViewModel.recentSession.collectAsStateWithLifecycle()
 
     var isAddSubjectDialogueOpen by rememberSaveable { mutableStateOf(false) }
     var isDeleteDialogueOpen by rememberSaveable { mutableStateOf(false) }
 
     //this is the functionality of SnackBar(Like Toast)
-    val snackBarEvent = dashboardViewModel.snackBarEventFlow
     val snackBarHostState = remember { SnackbarHostState() }
     LaunchedEffect(key1 = true) {
         snackBarEvent.collectLatest { event ->
@@ -205,7 +210,7 @@ private fun DashboardScreen(
             StudySessionList(
                 sectionTile = "SESSION LIST",
                 note = "You don't have any recent study sessions\n Start a new session to track your progress",
-                session = recentSession,
+                session = session,
                 onDeleteIconClick = {
                     onEvent(DashboardEvents.onDeleteSessionButtonClick(session = it))
                     isDeleteDialogueOpen = true

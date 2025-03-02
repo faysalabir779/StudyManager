@@ -24,20 +24,25 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -49,8 +54,16 @@ import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.TaskList
 import com.example.studymanager.presentation.destinations.TaskScreenRouteDestination
 import com.example.studymanager.presentation.task.TaskScreenNavArgs
+import com.example.studymanager.util.SnackBarEvent
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class SubjectScreenNavArgs(
     val subjectId: Int,
@@ -72,13 +85,15 @@ fun SubjectScreenRoute(navigator: DestinationsNavigator) {
         onTaskCardClick = { taskId ->
             val navArg = TaskScreenNavArgs(taskId = taskId, subjectId = null)
             navigator.navigate(TaskScreenRouteDestination(navArgs = navArg))
-        }
+        },
+        snackBarEvent = viewModel.snackBarEventFlow,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SubjectScreen(
+    snackBarEvent: SharedFlow<SnackBarEvent>,
     state: SubjectStates,
     onEvent: (SubjectEvents) -> Unit,
     onBackButtonClick: () -> Unit,
@@ -93,6 +108,25 @@ private fun SubjectScreen(
     val lazyListState = rememberLazyListState()
     val isFABExpanded by remember {
         derivedStateOf { lazyListState.firstVisibleItemIndex == 0 }
+    }
+
+    //this is the functionality of SnackBar(Like Toast)
+    val snackBarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(key1 = true) {
+        snackBarEvent.collectLatest { event ->
+            when (event) {
+                is SnackBarEvent.ShowSnackBar -> {
+                    snackBarHostState.showSnackbar(
+                        message = event.message,
+                        duration = event.duration
+                    )
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = state.studiedHours, key2 = state.goalStudyHours) {
+        onEvent(SubjectEvents.UpdateProgress)
     }
 
 
@@ -110,6 +144,7 @@ private fun SubjectScreen(
         selectedColor = state.subjectCardColor,
         onColorChange = { onEvent(SubjectEvents.OnSubjectCardColorChange(it)) },
         onConfirmButtonClick = {
+            onEvent(SubjectEvents.UpdateSubject)
             isAddSubjectDialogueOpen = false
         }
     )
@@ -123,6 +158,9 @@ private fun SubjectScreen(
         onConfirmButtonClick = {
             onEvent(SubjectEvents.DeleteSubject)
             isDeleteSubjectDialogueOpen = false
+            if (state.isLoading.not()){
+                onBackButtonClick()
+            }
         }
     )
 
@@ -138,6 +176,7 @@ private fun SubjectScreen(
         }
     )
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SubjectScreenTopBar(
