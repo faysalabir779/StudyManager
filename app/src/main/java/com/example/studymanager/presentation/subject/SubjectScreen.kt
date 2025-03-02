@@ -121,6 +121,8 @@ private fun SubjectScreen(
                         duration = event.duration
                     )
                 }
+
+                SnackBarEvent.NavigateUp -> TODO()
             }
         }
     }

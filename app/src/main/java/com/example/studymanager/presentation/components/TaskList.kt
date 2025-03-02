@@ -25,7 +25,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.studymanager.R
 import com.example.studymanager.doamin.model.Task
-import com.example.studymanager.util.Common
+import com.example.studymanager.util.Priority
+import com.example.studymanager.util.changeMillisToDateString
 
 
 fun LazyListScope.TaskList(
@@ -89,7 +90,7 @@ fun TaskCard(
         ) {
             TaskCheckBox(
                 isCompleted = task.isCompleted,
-                borderColor = Common.fromValue(task.priority).color,
+                borderColor = Priority.fromValue(task.priority).color,
                 onCheckBoxClick = onCheckBoxClick
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -104,7 +105,7 @@ fun TaskCard(
                     } else TextDecoration.None
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "${task.dueDate}", style = MaterialTheme.typography.bodySmall)
+                Text(text = task.dueDate.changeMillisToDateString(), style = MaterialTheme.typography.bodySmall)
             }
         }
     }

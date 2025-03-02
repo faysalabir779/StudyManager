@@ -12,12 +12,12 @@ class SessionRepositoryImpl @Inject constructor(private val sessionDao: SessionD
         sessionDao.insertSession(session)
     }
 
-    override suspend fun deleteSession(sessionId: Int) {
-        TODO("Not yet implemented")
+    override suspend fun deleteSession(session: Session) {
+        sessionDao.deleteSession(session)
     }
 
     override fun getAllSession(): Flow<List<Session>> {
-        TODO("Not yet implemented")
+        return sessionDao.getAllSession()
     }
 
     override fun getRecentFiveSession(): Flow<List<Session>> {

@@ -27,7 +27,7 @@ fun TaskCheckBox(
             .size(25.dp)
             .clip(CircleShape)
             .border(2.dp,borderColor,CircleShape)
-            .clickable { onCheckBoxClick },
+            .clickable { onCheckBoxClick() },
         contentAlignment = Alignment.Center
     ) {
         AnimatedVisibility(visible = isCompleted) {

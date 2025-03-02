@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-enum class Common(val title: String, val color: Color, val value: Int) {
+enum class Priority(val title: String, val color: Color, val value: Int) {
     LOW("Low", Green, 0), MEDIUM("Medium", Yellow, 1), HIGH("High", Red, 2);
 
     companion object {
@@ -39,4 +39,6 @@ sealed class SnackBarEvent{
         val message: String,
         val duration: SnackbarDuration = SnackbarDuration.Short
     ): SnackBarEvent()
+
+    data object NavigateUp: SnackBarEvent()
 }
