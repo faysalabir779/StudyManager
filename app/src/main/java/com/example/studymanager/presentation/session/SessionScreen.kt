@@ -32,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studymanager.presentation.components.DeleteDialogue
@@ -39,6 +40,8 @@ import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.SubjectListBottomSheet
 import com.example.studymanager.session
 import com.example.studymanager.subjects
+import com.example.studymanager.util.Constants.ACTION_SERVICE_CANCEL
+import com.example.studymanager.util.Constants.ACTION_SERVICE_START
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
@@ -57,6 +60,7 @@ private fun SessionScreen(
     onBackButtonClick: () -> Unit
 ) {
 
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
     var isSubjectBottomSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -98,10 +102,26 @@ private fun SessionScreen(
                 )
             }
             item {
-                RelatedToSubjectSection(isOpen = { isSubjectBottomSheetOpen = true })
+                RelatedToSubjectSection(
+                    isOpen = { isSubjectBottomSheetOpen = true }
+                )
             }
             item {
-                ButtonSection(startButton = { }, cancelButton = { }, finishButton = {})
+                ButtonSection(
+                    startButton = {
+                        ServiceHelper.triggeredForegroundService(
+                            context = context,
+                            action = ACTION_SERVICE_START
+                        )
+                    },
+                    cancelButton = {
+                        ServiceHelper.triggeredForegroundService(
+                            context = context,
+                            action = ACTION_SERVICE_CANCEL
+                        )
+                    },
+                    finishButton = {}
+                )
             }
             StudySessionList(sectionTile = "STUDY SESSIONS HISTORY",
                 note = "You don't have any recent study sessions\n Start a new session to track your progress",
