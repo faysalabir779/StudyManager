@@ -79,7 +79,7 @@ fun SubjectScreenRoute(navigator: DestinationsNavigator) {
         onEvent = viewModel::onEvent,
         onBackButtonClick = { navigator.navigateUp() },
         onAddTaskButtonClick = {
-            val navArg = TaskScreenNavArgs(taskId = null, subjectId = -1)
+            val navArg = TaskScreenNavArgs(taskId = null, subjectId = state.currentSubjectId)
             navigator.navigate(TaskScreenRouteDestination(navArgs = navArg))
         },
         onTaskCardClick = { taskId ->
@@ -210,8 +210,8 @@ private fun SubjectScreen(
             item {
                 SubjectOverViewSection(
                     modifier = Modifier.padding(12.dp),
-                    studiedHours = state.goalStudyHours,
-                    goalHours = state.studiedHours.toString(),
+                    studiedHours = state.studiedHours.toString(),
+                    goalHours = state.goalStudyHours,
                     progress = state.progress
                 )
             }

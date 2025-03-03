@@ -241,8 +241,9 @@ private fun TaskScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                val firstSubject = states.subjects.firstOrNull()?.name ?: ""
                 Text(
-                    text = states.relatedToSubject ?: "Select Subject",
+                    text = states.relatedToSubject ?: firstSubject,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 IconButton(

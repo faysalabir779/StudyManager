@@ -11,6 +11,7 @@ import com.example.studymanager.presentation.navArgs
 import com.example.studymanager.util.Priority
 import com.example.studymanager.util.SnackBarEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import javax.inject.Inject
 
@@ -106,7 +108,29 @@ class TaskScreenViewModel @Inject constructor(
             }
 
             TaskEvents.SaveTask -> saveTask()
-            TaskEvents.DeleteTask -> TODO()
+            TaskEvents.DeleteTask -> deleteTask()
+        }
+    }
+
+    private fun deleteTask () {
+        viewModelScope.launch {
+            try {
+                val currentTaskId = state.value.currentTaskId
+                if (currentTaskId != null){
+                    withContext(Dispatchers.IO){
+                        taskRepository.deleteTaskId(taskId = currentTaskId)
+                    }
+                    _snackBarEventFlow.emit(SnackBarEvent.ShowSnackBar(message = "Task Deleted successfully"))
+                    _snackBarEventFlow.emit(SnackBarEvent.NavigateUp)
+                }
+            } catch (e: Exception) {
+                _snackBarEventFlow.emit(
+                    SnackBarEvent.ShowSnackBar(
+                        message = "Couldn't delete Task. ${e.message}",
+                        SnackbarDuration.Long
+                    )
+                )
+            }
         }
     }
 
@@ -175,7 +199,7 @@ class TaskScreenViewModel @Inject constructor(
 
     private fun fetchSubject(){
         viewModelScope.launch {
-            navArgs.taskId?.let {id->
+            navArgs.subjectId?.let {id->
                 subjectRepository.getSubjectById(id)?.let { subject->
                     _state.update {
                         it.copy(

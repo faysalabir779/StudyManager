@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studymanager.doamin.model.Subject
+import com.example.studymanager.doamin.model.Task
 import com.example.studymanager.doamin.repository.SessionRepository
 import com.example.studymanager.doamin.repository.SubjectRepository
 import com.example.studymanager.doamin.repository.TaskRepository
@@ -93,9 +94,11 @@ class SubjectScreenViewModel @Inject constructor(
 
             SubjectEvents.UpdateSubject -> updateSubject()
             SubjectEvents.DeleteSubject -> deleteSubject()
+            is SubjectEvents.OnTaskIsCompleteChange -> {
+                updateTask(task = event.task)
+            }
             SubjectEvents.DeleteSession -> TODO()
             is SubjectEvents.OnDeleteSessionButtonClick -> TODO()
-            is SubjectEvents.OnTaskIsCompleteChange -> TODO()
             SubjectEvents.UpdateProgress -> {
                 val goalStudyHour = state.value.goalStudyHours.toFloatOrNull() ?: 1f
                 _state.update {
@@ -104,6 +107,29 @@ class SubjectScreenViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    private fun updateTask(task: Task) {
+        viewModelScope.launch {
+            try {
+                taskRepository.upsertTask(
+                    task = task.copy(isCompleted = !task.isCompleted)
+                )
+                if (task.isCompleted) {
+                    _snackBarEventFlow.emit(SnackBarEvent.ShowSnackBar(message = "Saved in Upcoming Task"))
+                } else {
+                    _snackBarEventFlow.emit(SnackBarEvent.ShowSnackBar(message = "Saved in completed Task"))
+                }
+            }catch (e: Exception) {
+                _snackBarEventFlow.emit(
+                    SnackBarEvent.ShowSnackBar(
+                        message = "Couldn't update. ${e.message}",
+                        SnackbarDuration.Long
+                    )
+                )
+            }
+
         }
     }
 
