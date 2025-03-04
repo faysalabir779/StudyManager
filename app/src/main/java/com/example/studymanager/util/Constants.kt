@@ -10,4 +10,6 @@ object Constants {
     const val NOTIFICATION_CHANNEL_NAME = "TIMER_NOTIFICATION"
 
     const val NOTIFICATION_ID = 10
+
+    const val CLICK_REQUEST_CODE = 100
 }

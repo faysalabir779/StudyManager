@@ -1,5 +1,14 @@
 package com.example.studymanager.presentation.session
 
+import android.content.Intent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +42,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,23 +53,42 @@ import com.example.studymanager.session
 import com.example.studymanager.subjects
 import com.example.studymanager.util.Constants.ACTION_SERVICE_CANCEL
 import com.example.studymanager.util.Constants.ACTION_SERVICE_START
+import com.example.studymanager.util.Constants.ACTION_SERVICE_STOP
+import com.ramcosta.composedestinations.annotation.DeepLink
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
+import java.sql.Time
 
-@Destination
+@Destination(
+    deepLinks = [
+        DeepLink(
+            action = Intent.ACTION_VIEW,
+            uriPattern = "study_manager://dashboard/session"
+        )
+    ]
+)
 @Composable
-fun SessionScreenRoute(navigator: DestinationsNavigator) {
+fun SessionScreenRoute(
+    timerService: StudySessionTimerService,
+    navigator: DestinationsNavigator
+) {
     SessionScreen(
-        onBackButtonClick = { navigator.navigateUp() }
+        onBackButtonClick = { navigator.navigateUp() },
+        timerService = timerService
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SessionScreen(
+    timerService: StudySessionTimerService,
     onBackButtonClick: () -> Unit
 ) {
+    val hour by timerService.hours
+    val minute by timerService.minutes
+    val second by timerService.seconds
+    val currentTimerState by timerService.currentTimerState
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -98,7 +128,10 @@ private fun SessionScreen(
                 TimerSection(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1f)
+                        .aspectRatio(1f),
+                    hour = hour,
+                    minute = minute,
+                    second = second
                 )
             }
             item {
@@ -111,7 +144,9 @@ private fun SessionScreen(
                     startButton = {
                         ServiceHelper.triggeredForegroundService(
                             context = context,
-                            action = ACTION_SERVICE_START
+                            action = if (currentTimerState == TimerState.STARTED) {
+                                ACTION_SERVICE_STOP
+                            } else ACTION_SERVICE_START
                         )
                     },
                     cancelButton = {
@@ -120,7 +155,9 @@ private fun SessionScreen(
                             action = ACTION_SERVICE_CANCEL
                         )
                     },
-                    finishButton = {}
+                    finishButton = {},
+                    timerState = currentTimerState,
+                    second = second
                 )
             }
             StudySessionList(sectionTile = "STUDY SESSIONS HISTORY",
@@ -148,7 +185,12 @@ private fun SessionScreenTopBar(
 }
 
 @Composable
-private fun TimerSection(modifier: Modifier) {
+private fun TimerSection(
+    modifier: Modifier,
+    hour: String,
+    minute: String,
+    second: String
+) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -158,7 +200,35 @@ private fun TimerSection(modifier: Modifier) {
                 .size(250.dp)
                 .border(5.dp, MaterialTheme.colorScheme.surfaceVariant, CircleShape)
         )
-        Text(text = "00:05:59", style = MaterialTheme.typography.titleLarge.copy(fontSize = 45.sp))
+        Row {
+            AnimatedContent(
+                targetState = hour,
+                label = hour,
+                transitionSpec = { timerTextAnimation() }) { hour ->
+                Text(
+                    text = "$hour:",
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 45.sp)
+                )
+            }
+            AnimatedContent(
+                targetState = minute,
+                label = minute,
+                transitionSpec = { timerTextAnimation() }) { minute ->
+                Text(
+                    text = "$minute:",
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 45.sp)
+                )
+            }
+            AnimatedContent(
+                targetState = second,
+                label = second,
+                transitionSpec = { timerTextAnimation() }) { second ->
+                Text(
+                    text = second,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 45.sp)
+                )
+            }
+        }
     }
 }
 
@@ -190,7 +260,9 @@ private fun ButtonSection(
     modifier: Modifier = Modifier,
     startButton: () -> Unit,
     cancelButton: () -> Unit,
-    finishButton: () -> Unit
+    finishButton: () -> Unit,
+    timerState: TimerState,
+    second: String
 ) {
     Row(
         modifier = Modifier
@@ -198,17 +270,43 @@ private fun ButtonSection(
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Button(onClick = cancelButton) {
+        Button(
+            onClick = cancelButton,
+            enabled = second != "00" && timerState != TimerState.STARTED
+        ) {
             Text(text = "Cancel", modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
         }
-        Button(onClick = startButton) {
-            Text(text = "Start", modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
+        Button(
+            onClick = startButton, colors = ButtonDefaults.buttonColors(
+                containerColor = if (timerState == TimerState.STARTED) Color.Red
+                else MaterialTheme.colorScheme.primary,
+                contentColor = Color.White
+            )
+        ) {
+            Text(
+                text = when (timerState) {
+                    TimerState.STARTED -> "Stop"
+                    TimerState.STOPPED -> "Resume"
+                    else -> "Start"
+                }, modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+            )
         }
-        Button(onClick = finishButton) {
+        Button(
+            onClick = finishButton,
+            enabled = second != "00" && timerState != TimerState.STARTED
+        ) {
             Text(text = "Finish", modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp))
         }
 
     }
 
+
+}
+
+private fun timerTextAnimation(duration: Int = 600): ContentTransform {
+    return slideInVertically(animationSpec = tween(duration)) { fullHeight -> fullHeight } +
+            fadeIn(animationSpec = tween(duration)) togetherWith
+            slideOutVertically(animationSpec = tween(duration)) { fullHeight -> -fullHeight } +
+            fadeOut(animationSpec = tween(duration))
 }
 

@@ -28,17 +28,21 @@ fun Long?.changeMillisToDateString(): String {
     return date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
 }
 
-fun Long.toHours(): Float{
+fun Long.toHours(): Float {
     val hours = this.toFloat() / 3600f
     return "%.2f".format(hours).toFloat()
 }
 
 
-sealed class SnackBarEvent{
+sealed class SnackBarEvent {
     data class ShowSnackBar(
         val message: String,
         val duration: SnackbarDuration = SnackbarDuration.Short
-    ): SnackBarEvent()
+    ) : SnackBarEvent()
 
-    data object NavigateUp: SnackBarEvent()
+    data object NavigateUp : SnackBarEvent()
+}
+
+fun Int.pad(): String {
+    return this.toString().padStart(length = 2, padChar = '0')
 }
