@@ -72,7 +72,7 @@ fun AddSubjectDialogue(
         AlertDialog(
             onDismissRequest = onDismissClick,
             title = {
-                Text(text = "Add/Update Subject")
+                Text(text = if (subjectName != "")"Update Subject" else "Add Subject")
             },
             text = {
                 Column(modifier = Modifier.clickable(
