@@ -11,7 +11,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 enum class Priority(val title: String, val color: Color, val value: Int) {
-    LOW("Low", Green, 0), MEDIUM("Medium", Yellow, 1), HIGH("High", Red, 2);
+    LOW("Low", Color(0xFF1AAA55), 0), MEDIUM("Medium", Color(0xFFFC9403), 1), HIGH("High", Color(0xFFDB3B21), 2);
 
     companion object {
         fun fromValue(value: Int) = values().firstOrNull { it.value == value } ?: MEDIUM

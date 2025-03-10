@@ -52,6 +52,8 @@ class StudySessionTimerService : Service() {
     var currentTimerState = mutableStateOf(TimerState.IDLE)
         private set
 
+    val subjectId = mutableStateOf<Int?>(null)
+
     override fun onBind(p0: Intent?) = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

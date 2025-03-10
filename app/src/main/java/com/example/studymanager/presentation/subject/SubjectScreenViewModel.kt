@@ -97,8 +97,14 @@ class SubjectScreenViewModel @Inject constructor(
             is SubjectEvents.OnTaskIsCompleteChange -> {
                 updateTask(task = event.task)
             }
-            SubjectEvents.DeleteSession -> TODO()
-            is SubjectEvents.OnDeleteSessionButtonClick -> TODO()
+            SubjectEvents.DeleteSession -> deleteSubject()
+            is SubjectEvents.OnDeleteSessionButtonClick -> {
+                _state.update {
+                    it.copy(
+                        session = event.session
+                    )
+                }
+            }
             SubjectEvents.UpdateProgress -> {
                 val goalStudyHour = state.value.goalStudyHours.toFloatOrNull() ?: 1f
                 _state.update {
@@ -188,6 +194,24 @@ class SubjectScreenViewModel @Inject constructor(
                 )
             }
             _state.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private fun deleteSession() {
+        viewModelScope.launch {
+            try {
+                state.value.session?.let {
+                    sessionRepository.deleteSession(it)
+                }
+                _snackBarEventFlow.emit(SnackBarEvent.ShowSnackBar(message = "Session Deleted successfully"))
+            }catch (e: Exception) {
+                _snackBarEventFlow.emit(
+                    SnackBarEvent.ShowSnackBar(
+                        message = "Couldn't delete session. ${e.message}",
+                        SnackbarDuration.Long
+                    )
+                )
+            }
         }
     }
 }

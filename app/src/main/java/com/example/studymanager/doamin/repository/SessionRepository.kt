@@ -7,7 +7,7 @@ interface SessionRepository {
 
     suspend fun insertSession(session: Session)
 
-    suspend fun deleteSession(session: Session)
+    suspend fun deleteSession(session: Session  )
 
     fun getAllSession(): Flow<List<Session>>
 

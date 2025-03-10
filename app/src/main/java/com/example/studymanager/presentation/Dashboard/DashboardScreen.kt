@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -56,6 +58,7 @@ import com.example.studymanager.presentation.components.TaskList
 import com.example.studymanager.presentation.destinations.SessionScreenRouteDestination
 import com.example.studymanager.presentation.destinations.SubjectScreenRouteDestination
 import com.example.studymanager.presentation.destinations.TaskScreenRouteDestination
+import com.example.studymanager.presentation.session.StudySessionTimerService
 import com.example.studymanager.presentation.subject.SubjectScreenNavArgs
 import com.example.studymanager.presentation.task.TaskScreenNavArgs
 import com.example.studymanager.util.SnackBarEvent
@@ -69,7 +72,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Destination()
 @Composable
 fun DashBoardScreenRoute(
-    navigator: DestinationsNavigator
+    navigator: DestinationsNavigator,
+    timerService: StudySessionTimerService,
 ) {
     val viewModel: DashboardViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -95,6 +99,7 @@ fun DashBoardScreenRoute(
         onEvent = viewModel::onEvent,
         task = task,
         session = recentSession,
+        timerService = timerService
     )
 }
 
@@ -102,6 +107,7 @@ fun DashBoardScreenRoute(
 @Composable
 private fun DashboardScreen(
     state: DashboardState,
+    timerService: StudySessionTimerService,
     task: List<Task>,
     session: List<Session>,
     onSubjectCardClick: (Int?) -> Unit,
@@ -113,6 +119,8 @@ private fun DashboardScreen(
 
     var isAddSubjectDialogueOpen by rememberSaveable { mutableStateOf(false) }
     var isDeleteDialogueOpen by rememberSaveable { mutableStateOf(false) }
+
+    val seconds by timerService.seconds
 
     //this is the functionality of SnackBar(Like Toast)
     val snackBarHostState = remember { SnackbarHostState() }
@@ -190,15 +198,20 @@ private fun DashboardScreen(
             item {
                 Button(
                     onClick = onStartSessionButtonClick,
+                    enabled = state.subjects.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(88.dp)
                         .padding(horizontal = 12.dp, vertical = 20.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = if (seconds != "00") Color.Red else MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text(text = "Start Study Session")
+                    Text(text = if (seconds != "00") "Check Running Study Session" else "Start Study Session")
+                    Spacer(modifier = Modifier.width(25.dp))
+                    if (seconds != "00"){
+                        Icon(Icons.Filled.PlayArrow, contentDescription = null)
+                    }
                 }
             }
             TaskList(

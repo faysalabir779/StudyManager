@@ -103,7 +103,7 @@ class DashboardViewModel @Inject constructor(
                 updateTask(task = event.task)
             }
             DashboardEvents.SaveSubject -> saveSubject()
-            DashboardEvents.DeleteSession -> TODO()
+            DashboardEvents.DeleteSession -> deleteSession()
         }
     }
 
@@ -153,6 +153,24 @@ class DashboardViewModel @Inject constructor(
                 )
             }
 
+        }
+    }
+
+    private fun deleteSession() {
+        viewModelScope.launch {
+            try {
+                state.value.session?.let {
+                    sessionRepository.deleteSession(it)
+                }
+                _snackBarEventFlow.emit(SnackBarEvent.ShowSnackBar(message = "Session Deleted successfully"))
+            }catch (e: Exception) {
+                _snackBarEventFlow.emit(
+                    SnackBarEvent.ShowSnackBar(
+                        message = "Couldn't delete session. ${e.message}",
+                        SnackbarDuration.Long
+                    )
+                )
+            }
         }
     }
 

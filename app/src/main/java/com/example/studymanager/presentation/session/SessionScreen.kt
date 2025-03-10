@@ -31,12 +31,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -46,19 +50,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.studymanager.presentation.components.DeleteDialogue
 import com.example.studymanager.presentation.components.StudySessionList
 import com.example.studymanager.presentation.components.SubjectListBottomSheet
-import com.example.studymanager.session
-import com.example.studymanager.subjects
 import com.example.studymanager.util.Constants.ACTION_SERVICE_CANCEL
 import com.example.studymanager.util.Constants.ACTION_SERVICE_START
 import com.example.studymanager.util.Constants.ACTION_SERVICE_STOP
+import com.example.studymanager.util.SnackBarEvent
 import com.ramcosta.composedestinations.annotation.DeepLink
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.sql.Time
+import kotlin.time.DurationUnit
 
 @Destination(
     deepLinks = [
@@ -73,17 +80,26 @@ fun SessionScreenRoute(
     timerService: StudySessionTimerService,
     navigator: DestinationsNavigator
 ) {
+    val viewModel: SessionScreenViewModel = hiltViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     SessionScreen(
         onBackButtonClick = { navigator.navigateUp() },
-        timerService = timerService
+        timerService = timerService,
+        state = state,
+        onEvent = viewModel::onEvent,
+        snackBarEvent = viewModel.snackBarEventFlow
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SessionScreen(
+    state: SessionState,
+    onEvent: (SessionEvents) -> Unit,
     timerService: StudySessionTimerService,
-    onBackButtonClick: () -> Unit
+    onBackButtonClick: () -> Unit,
+    snackBarEvent: SharedFlow<SnackBarEvent>
+
 ) {
     val hour by timerService.hours
     val minute by timerService.minutes
@@ -97,15 +113,42 @@ private fun SessionScreen(
 
     var isTaskDelete by rememberSaveable { mutableStateOf(false) }
 
+    //this is the functionality of SnackBar(Like Toast)
+    val snackBarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(key1 = true) {
+        snackBarEvent.collectLatest { event ->
+            when (event) {
+                is SnackBarEvent.ShowSnackBar -> {
+                    snackBarHostState.showSnackbar(
+                        message = event.message,
+                        duration = event.duration
+                    )
+                }
+
+                SnackBarEvent.NavigateUp -> {}
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = state.subjects) {
+        val subjectId = timerService.subjectId.value
+        onEvent(
+            SessionEvents.UpdateSubjectIdAndRelatedSubject(
+                subjectId = subjectId,
+                relatedToSubject = state.subjects.find { it.subjectId == subjectId }?.name
+            )
+        )
+    }
 
     SubjectListBottomSheet(
         sheetState = sheetState,
         isOpen = isSubjectBottomSheetOpen,
-        subjects = subjects,
-        onSubjectClicked = {
+        subjects = state.subjects,
+        onSubjectClicked = { subject ->
             scope.launch { sheetState.hide() }.invokeOnCompletion {
                 if (!sheetState.isVisible) isSubjectBottomSheetOpen = false
             }
+            onEvent(SessionEvents.OnRelatedSubjectChange(subject))
         },
         onDismissRequest = { isSubjectBottomSheetOpen = false }
     )
@@ -114,11 +157,16 @@ private fun SessionScreen(
         title = "Delete Study Session?",
         bodyText = "Are you sure, you want to delete this task? This action cannot be undone.",
         onDismissClick = { isTaskDelete = false },
-        onConfirmButtonClick = { isTaskDelete = false })
+        onConfirmButtonClick = {
+            onEvent(SessionEvents.DeleteSession)
+            isTaskDelete = false
+        })
 
-    Scaffold(topBar = {
-        SessionScreenTopBar(onBackClick = onBackButtonClick)
-    }) {
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+        topBar = {
+            SessionScreenTopBar(onBackClick = onBackButtonClick)
+        }) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -136,18 +184,25 @@ private fun SessionScreen(
             }
             item {
                 RelatedToSubjectSection(
-                    isOpen = { isSubjectBottomSheetOpen = true }
+                    relatedSubject = state.relatedToSubject ?: "Select Subject",
+                    isOpen = { isSubjectBottomSheetOpen = true },
+                    seconds = second
                 )
             }
             item {
                 ButtonSection(
                     startButton = {
-                        ServiceHelper.triggeredForegroundService(
-                            context = context,
-                            action = if (currentTimerState == TimerState.STARTED) {
-                                ACTION_SERVICE_STOP
-                            } else ACTION_SERVICE_START
-                        )
+                        if (state.subjectId != null && state.relatedToSubject != null) {
+                            ServiceHelper.triggeredForegroundService(
+                                context = context,
+                                action = if (currentTimerState == TimerState.STARTED) {
+                                    ACTION_SERVICE_STOP
+                                } else ACTION_SERVICE_START
+                            )
+                            timerService.subjectId.value = state.subjectId
+                        } else {
+                            onEvent(SessionEvents.NotifySubjectId)
+                        }
                     },
                     cancelButton = {
                         ServiceHelper.triggeredForegroundService(
@@ -155,15 +210,27 @@ private fun SessionScreen(
                             action = ACTION_SERVICE_CANCEL
                         )
                     },
-                    finishButton = {},
+                    finishButton = {
+                        val duration = timerService.duration.toLong(DurationUnit.SECONDS)
+                        if (duration >= 36) {
+                            ServiceHelper.triggeredForegroundService(
+                                context = context,
+                                action = ACTION_SERVICE_CANCEL
+                            )
+                        }
+                        onEvent(SessionEvents.SaveSession(duration))
+                    },
                     timerState = currentTimerState,
                     second = second
                 )
             }
             StudySessionList(sectionTile = "STUDY SESSIONS HISTORY",
                 note = "You don't have any recent study sessions\n Start a new session to track your progress",
-                session = session,
-                onDeleteIconClick = { isTaskDelete = true })
+                session = state.sessions,
+                onDeleteIconClick = { session ->
+                    onEvent(SessionEvents.OnDeleteSessionButtonClick(session))
+                    isTaskDelete = true
+                })
 
         }
 
@@ -233,7 +300,11 @@ private fun TimerSection(
 }
 
 @Composable
-private fun RelatedToSubjectSection(isOpen: () -> Unit) {
+private fun RelatedToSubjectSection(
+    relatedSubject: String,
+    isOpen: () -> Unit,
+    seconds: String
+) {
 
     Column(
         modifier = Modifier
@@ -247,8 +318,8 @@ private fun RelatedToSubjectSection(isOpen: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "English", style = MaterialTheme.typography.bodyLarge)
-            IconButton(onClick = isOpen) {
+            Text(text = relatedSubject, style = MaterialTheme.typography.bodyLarge)
+            IconButton(onClick = isOpen, enabled = seconds == "00") {
                 Icon(imageVector = Icons.Filled.KeyboardArrowDown, contentDescription = null)
             }
         }
